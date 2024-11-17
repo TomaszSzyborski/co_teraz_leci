@@ -50,26 +50,15 @@ if refresh:
         with open("programy.csv", "a") as f:
             f.write(f"{channel}|{title!r}|{start_time_cet}|{stop_time_cet}|{duration}\n")
 
-
-df = pl.read_csv("programy.csv",separator="|", truncate_ragged_lines=True)
-df = df.with_columns(
-    pl.col('start').str.strptime(pl.Datetime),
-    pl.col('koniec').str.strptime(pl.Datetime),
-    # pl.col('czas trwania').str.strptime(pl.Time),
-)
-df = df.with_columns(
-    pl.col('start').dt.convert_time_zone('CET'),
-    pl.col('koniec').dt.convert_time_zone('CET'),
-)
+with open("programy.csv", "r") as f:
+    data = f.read()
 
 current_time_utc = datetime.now(cet)
 
-future = current_time_utc + pl.duration(hours=timedelta(hours=2, minutes=30).total_seconds() / 3600)
-past = current_time_utc - pl.duration(hours=timedelta(hours=2, minutes=30).total_seconds() / 3600)
-filtered_df = (df.filter(pl.col('koniec') < current_time_utc)
-               .filter(pl.col('koniec') < future)
-               .filter(pl.col('czas trwania') >= 15)
-               .filter(pl.col('start') > past))
-# # Print the filtered DataFrame
-print(filtered_df)
+filtered = []
+for row in data:
+    channel, title, start, end, duration = row.split("|")
+    datetime.strptime(start, "%d.%m %:H%M")
+    datetime.strptime(end, "%d.%m %:H%M")
 
+print(filtered)
