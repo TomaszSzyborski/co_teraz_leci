@@ -1,6 +1,5 @@
 from datetime import datetime, timedelta
 
-import bs4
 import pytz
 from fastapi import FastAPI, Form, Query, APIRouter
 from fastapi.responses import HTMLResponse
@@ -13,6 +12,7 @@ import logging
 from fastapi.responses import HTMLResponse
 from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
 

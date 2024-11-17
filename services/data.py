@@ -1,7 +1,6 @@
 import os
 from datetime import datetime
 
-import bs4
 import lxml.etree
 import polars as pl
 import pytz
@@ -18,7 +17,6 @@ logging.basicConfig(filename="data_processing.log",
                     datefmt='%H:%M:%S',
                     level=logging.INFO)
 logger = logging.getLogger(__name__)
-
 
 timezone = pytz.timezone(configuration.timezone)
 
