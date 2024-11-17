@@ -23,13 +23,15 @@ templates = Jinja2Templates(directory="templates")
 timezone = pytz.timezone('Poland')
 
 
+@api_router.get("/", response_class=HTMLResponse)
 @api_router.get("/teraz", response_class=HTMLResponse)
 async def index(request: Request):
     current_time_utc = datetime.now(timezone)
     filtered_df = (programme_data.data_frame
                    .filter(pl.col('start') < current_time_utc)
                    .filter(current_time_utc < pl.col('koniec'))
-                   .filter(pl.col('czas trwania') >= 15))
+                   .filter(pl.col('czas trwania') >= 15)
+                   .filter(pl.col('czas trwania') <= 300))
 
     filtered_df = filtered_df.with_columns(
         pl.col('start').dt.strftime('%H:%M'),
@@ -46,8 +48,14 @@ async def zaraz(request: Request):
     filtered_df = (programme_data.data_frame
                    .filter(pl.col('start') > current_time_utc)
                    .filter(pl.col('koniec') < future)
-                   .filter(pl.col('czas trwania') >= 15))
-    return filtered_df.to_dicts()
+                   .filter(pl.col('czas trwania') >= 15)
+                   .filter(pl.col('czas trwania') <= 300))
+    filtered_df = filtered_df.with_columns(
+        pl.col('start').dt.strftime('%H:%M'),
+        pl.col('koniec').dt.strftime('%H:%M'))
+    return templates.TemplateResponse(request=request,
+                                      name="channels.html",
+                                      context={"channels": filtered_df.to_dicts()})
 
 
 @api_router.get("/force_refresh", include_in_schema=False)

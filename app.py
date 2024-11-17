@@ -8,6 +8,7 @@ from fastapi.routing import APIRoute, APIRouter
 from starlette.middleware.cors import CORSMiddleware
 from apscheduler.schedulers.background import BackgroundScheduler
 import time
+from fastapi.responses import FileResponse
 
 from starlette.staticfiles import StaticFiles
 
@@ -22,6 +23,7 @@ scheduler = BackgroundScheduler()
 def refresh_data():
     asyncio.create_task(programme_data.refresh_data())
 
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     scheduler.add_job(refresh_data, CronTrigger(hour=0, minute=0))
@@ -30,12 +32,19 @@ async def lifespan(app: FastAPI):
     yield
     scheduler.shutdown()
 
+
 app = FastAPI(
     lifespan=lifespan,
     title="Co leci w telewizji?",
     openapi_url=f"/openapi.json",
 )
 app.mount("/static", StaticFiles(directory="static"), name="static")
+
+
+@app.get('/favicon.ico', include_in_schema=False)
+async def favicon():
+    return FileResponse("static/favicon.png")
+
 
 app.add_middleware(
     CORSMiddleware,
