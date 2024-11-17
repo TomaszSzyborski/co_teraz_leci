@@ -40,7 +40,7 @@ class ProgrammeData:
         content_length_mb = content_length_bytes / (1024 * 1024)
         logger.info(f"Data fetched successfully. Response size: {content_length_mb:.2f} MB")
         with open(file_path, "w") as f:
-            f.write(response.content)
+            f.write(response.text)
         # return response.content
 
     async def parse_data(self, source_xml_file_name: str,
