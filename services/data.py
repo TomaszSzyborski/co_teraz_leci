@@ -2,6 +2,7 @@ import os
 from datetime import datetime
 
 import bs4
+import lxml.etree
 import polars as pl
 import pytz
 import requests as r
@@ -11,8 +12,13 @@ import configuration
 import environment
 from environment import Environment
 
-logging.basicConfig(level=logging.INFO)
+logging.basicConfig(filename="data_processing.log",
+                    filemode='a',
+                    format='%(asctime)s,%(msecs)d %(name)s %(levelname)s %(message)s',
+                    datefmt='%H:%M:%S',
+                    level=logging.INFO)
 logger = logging.getLogger(__name__)
+
 
 timezone = pytz.timezone(configuration.timezone)
 
@@ -30,33 +36,34 @@ class ProgrammeData:
             content_length_mb = content_length_bytes / (1024 * 1024)
             logger.info(f"Data fetched successfully")
             logger.info(f"Response size: {content_length_mb:.2f} MB")
+            # xml = lxml.etree.fromstring(response.content)
 
             logger.info("Parsing the data...")
-            with open("programy.xml", "w") as f:
+            with open("programy.xml", "w", encoding="utf-8") as f:
                 f.write(response.text)
-            with open("programy.xml", "r") as f:
-                soup = bs4.BeautifulSoup(f.read(), "xml")
+            with open("programy.xml", "r", encoding="utf-8") as f:
+                xml = lxml.etree.fromstring(f.read().encode('utf-8'))
             logger.info("Parsing the data completed")
 
             logger.info("Preparing the data...")
-            programmes = soup.find_all('programme')
+            programmes = xml.xpath('//programme')
             with open("programy.csv", "w") as f:
                 f.write("kanał|tytuł|start|koniec|czas trwania\n")
 
             for programme in programmes:
-                channel = programme['channel']
-                title = programme.title.string
-                start_str = programme['start']
-                stop_str = programme['stop']
+                channel = programme.attrib['channel']
+                title = programme.find('title').text
+                start_str = programme.attrib['start']
+                stop_str = programme.attrib['stop']
 
                 start_time_utc = datetime.strptime(start_str, '%Y%m%d%H%M%S %z')
                 stop_time_utc = datetime.strptime(stop_str, '%Y%m%d%H%M%S %z')
 
                 # Convert UTC datetime objects to CET
-                # start_time_cet = start_time_utc.astimezone(timezone)
-                # stop_time_cet = stop_time_utc.astimezone(timezone)
-                start_time_cet = timezone.localize(start_time_utc)
-                stop_time_cet = timezone.localize(stop_time_utc)
+                start_time_cet = start_time_utc.astimezone(timezone)
+                stop_time_cet = stop_time_utc.astimezone(timezone)
+                # start_time_cet = timezone.localize(start_time_utc)
+                # stop_time_cet = timezone.localize(stop_time_utc)
                 duration = (stop_time_cet - start_time_cet).total_seconds() / 60
 
                 with open("programy.csv", "a") as f:
