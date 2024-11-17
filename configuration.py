@@ -2,5 +2,5 @@ from os import environ
 
 from environment import Environment
 
-timezone = 'Poland'
-environment = environ.get("envname", Environment.PRODUCTION)
+timezone = 'Europe/Warsaw'
+environment = environ.get("envname", Environment.LOCAL)

@@ -7,11 +7,11 @@ from fastapi.templating import Jinja2Templates
 from fastapi import Request
 import polars as pl
 from starlette.responses import JSONResponse
-import requests as r
 import logging
 from fastapi.responses import HTMLResponse
-from fastapi.staticfiles import StaticFiles
 from fastapi.templating import Jinja2Templates
+
+import configuration
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
@@ -20,16 +20,15 @@ from services.data import programme_data
 
 api_router = APIRouter()
 templates = Jinja2Templates(directory="templates")
-timezone = pytz.timezone('Poland')
 
 
 @api_router.get("/", response_class=HTMLResponse)
 @api_router.get("/teraz", response_class=HTMLResponse)
 async def index(request: Request):
-    current_time_utc = datetime.now(timezone)
+    current_time = datetime.now(tz=pytz.timezone(configuration.timezone))
     filtered_df = (programme_data.data_frame
-                   .filter(pl.col('start') < current_time_utc)
-                   .filter(current_time_utc < pl.col('koniec'))
+                   .filter(pl.col('start') < current_time)
+                   .filter(current_time < pl.col('koniec'))
                    .filter(pl.col('czas trwania') >= 15)
                    .filter(pl.col('czas trwania') <= 300))
 
@@ -43,10 +42,10 @@ async def index(request: Request):
 
 @api_router.get("/zaraz")
 async def zaraz(request: Request):
-    current_time_utc = datetime.now(timezone)
-    future = current_time_utc + pl.duration(hours=timedelta(hours=2, minutes=30).total_seconds() / 3600)
+    current_time = datetime.now(tz=pytz.timezone(configuration.timezone))
+    future = current_time + pl.duration(hours=timedelta(hours=2, minutes=30).total_seconds() / 3600)
     filtered_df = (programme_data.data_frame
-                   .filter(pl.col('start') > current_time_utc)
+                   .filter(pl.col('start') > current_time)
                    .filter(pl.col('koniec') < future)
                    .filter(pl.col('czas trwania') >= 15)
                    .filter(pl.col('czas trwania') <= 300))
