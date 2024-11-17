@@ -22,7 +22,7 @@ scheduler = BackgroundScheduler()
 
 
 def refresh_data():
-    asyncio.create_task(programme_data.refresh_data())
+    asyncio.create_task(programme_data.refresh_data("programy.xml", "programy.csv"))
 
 
 @asynccontextmanager

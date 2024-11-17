@@ -59,5 +59,5 @@ async def zaraz(request: Request):
 
 @api_router.get("/force_refresh", include_in_schema=False)
 async def force_refresh_data():
-    await programme_data.refresh_data(force=True)
+    await programme_data.refresh_data("programy.xml", "programy.csv", force=True)
     return JSONResponse(content={"message": "Odświeżono listę"}, status_code=200)
